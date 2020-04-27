@@ -30,7 +30,6 @@ def parse_args():
 def main():
     args = parse_args()
     ENC_PATH = os.environ.get('ENC_PATH') 
-    DWNLD_PATH = os.environ.get('DWNLD_PATH')
 
     if args.mode == 'init':
         keyPair = RSA.generate(3072)
@@ -64,24 +63,27 @@ def main():
         ### SEND ENCRYPTED TEXT OVER EMAIL
         sender = Sender(text="see attached", attached=ENC_PATH, to_addr=recipients[args.to_whom])
         sender.send()
-
+        os.remove(ENC_PATH)
 
     elif args.mode == 'recv':
         assert args.from_whom is not None, "sender's alias not provided. From whom is the inbound message?"
 
         ### FETCH EMAIL, EXTRACT PAYLOAD
         receiver = Receiver(args.from_whom)
-        receiver.receive()
+        ps = receiver.receive()
 
         ### DECRYPT PAYLOAD
-        with open(DWNLD_PATH, 'rb') as f:
-            enc_msg = f.read()
+        if len(ps)==0:
+            print("No ptalk message found.")
+            exit(1)
+        print(f"{len(ps)} new ptalk message(s) found. Decrypted:")
         privKey = PKCS1_OAEP.new(privKey)
-        dec_msg = privKey.decrypt(enc_msg).decode("utf-8")
-        print("decrypted:")
-        print(f"> {dec_msg}")
-        
-        ### TODO: delete DWNLD_PATH file
+        for p in ps:
+            with open(p, 'rb') as f:
+                enc_msg = f.read()
+                dec_msg = privKey.decrypt(enc_msg).decode("utf-8")
+                print(f"> {dec_msg}") 
+                os.remove(p)
 
 if __name__ == '__main__':
     main()
