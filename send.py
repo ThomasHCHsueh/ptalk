@@ -1,35 +1,47 @@
-
+import os
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart 
+from email.mime.base import MIMEBase 
+from email import encoders
 
-def main():
+class Sender:
+    def __init__(self, text, attached, to_addr):
+        self.text = text
+        self.attached = attached
+        self.to_addr = to_addr
+        self.email = os.environ.get('MY_EMAIL')
+        self.pwd   = os.environ.get('MY_PWD')
 
-    # connect with Google's servers
-    smtp_ssl_host = 'smtp.gmail.com'
-    smtp_ssl_port = 465
+    def send(self):
+        # connect with Google's servers
+        smtp_ssl_host = 'smtp.gmail.com'
+        smtp_ssl_port = 465
 
-    # use username or email to log in
-    username = 'thomasleedigitalmarketing@gmail.com'
-    password = 'Thomas1125[]'
+        from_addr = self.email
+        to_addrs = [self.to_addr]
 
-    from_addr = 'thomasleedigitalmarketing@gmail.com'
-    to_addrs = ['syr.shuyiran@gmail.com']
+        # prepare file attachment
+        atta = open(self.attached, 'rb')
+        p = MIMEBase('application', 'octet-stream')
+        p.set_payload((atta).read())
+        encoders.encode_base64(p)
+        p.add_header('Content-Disposition', f'attachment; filename={self.attached}')
 
-    # use MIMEText to send only text
-    message = MIMEText('Hello this is sent from a Python practice.')
-    message['subject'] = 'Hello from Python'
-    message['from'] = from_addr
-    message['to'] = ', '.join(to_addrs)
+        # use MIMEText to send only text
+        message = MIMEMultipart()        
+        message['subject'] = 'ptalk'
+        message['from'] = from_addr
+        message['to'] = ', '.join(to_addrs)
+        message.attach(MIMEText(self.text, 'plain'))
+        message.attach(p)
 
-    # we'll connect using SSL
-    server = smtplib.SMTP_SSL(smtp_ssl_host, smtp_ssl_port)
+        # we'll connect using SSL
+        server = smtplib.SMTP_SSL(smtp_ssl_host, smtp_ssl_port)
     
-    # to interact with the server, first we log in
-    # and then we send the message
-    server.login(username, password)
-    server.sendmail(from_addr, to_addrs, message.as_string())
-    server.quit()
+        # to interact with the server, first we log in
+        # and then we send the message
+        server.login(self.email, self.pwd)
+        server.sendmail(from_addr, to_addrs, message.as_string())
+        server.quit()
 
-
-if __name__ == '__main__':
-    main()
