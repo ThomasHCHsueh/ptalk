@@ -3,16 +3,12 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 import binascii
 import argparse
-from send import Sender
-from recv import Receiver
 from dotenv import load_dotenv
 
-pubkeys = {
-#    'confidant':
-}
-recipients = {
-    'confidant': 'thomasleedigitalmarketing@gmail.com'
-}
+from send import Sender
+from recv import Receiver
+from contact import *
+
 load_dotenv()
 
 def parse_args():
