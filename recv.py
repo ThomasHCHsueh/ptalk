@@ -8,8 +8,6 @@ class Receiver:
 
         self.email = os.environ.get('MY_EMAIL')
         self.pwd   = os.environ.get('MY_PWD')
-        #self.email = 'thomasleedigitalmarketing@gmail.com'
-        #self.pwd = 'Thomas1125[]'
         self.from_whom = from_whom
         self.server = 'imap.gmail.com'
     
@@ -24,12 +22,14 @@ class Receiver:
         for block in data:
             mail_ids += block.split()
         
+        print(mail_ids)
+
         for i in mail_ids:
             status, data = mail.fetch(i, '(RFC822)')
             
-            # the content data at the '(RFC822)' format comes on
-            # a list with a tuple with header, content, and the closing
-            # byte b')'
+            ## the content data at the '(RFC822)' format comes on
+            ## a list with a tuple with header, content, and the closing
+            ## byte b')'
             for response_part in data:
                 if isinstance(response_part, tuple):
                     message = email.message_from_bytes(response_part[1])
@@ -43,7 +43,14 @@ class Receiver:
                             f.write(part.get_payload(decode=True))
                         print("attachment downloaded successfully.")
 
-            #TODO: move mail to ptalk folder
+        ## move ptalk mails to trash
+        start = mail_ids[0].decode()
+        end = mail_ids[-1].decode()
+        mail.store(f'{start}:{end}'.encode(), '+X-GM-LABELS', '\\Trash')
+        ## access the Gmail trash
+        # mail.select('[Gmail]/Trash')
+        ## mark the emails to be deleted
+        # mail.store("1:*", '+FLAGS', '\\Deleted')
 
 if __name__ == '__main__':
     r = Receiver("")
